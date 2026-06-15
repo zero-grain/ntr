@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 DATA_DIR = BASE_DIR / "data"
 OUTPUT_JSON = DATA_DIR / "report-data.json"
+OUTPUT_JS = DATA_DIR / "report-data.js"
 
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -85,8 +86,10 @@ def build_payload() -> dict:
 def main() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     payload = build_payload()
-    OUTPUT_JSON.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
+    json_text = json.dumps(payload, ensure_ascii=False, indent=2)
+    OUTPUT_JSON.write_text(json_text, encoding="utf-8")
+    OUTPUT_JS.write_text(
+        "window.STATIC_REPORT_DATA = " + json_text + ";\n",
         encoding="utf-8",
     )
     print(f"Static report data saved to: {OUTPUT_JSON}")

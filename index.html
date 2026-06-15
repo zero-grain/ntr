@@ -247,6 +247,7 @@
     </section>
   </template>
 
+  <script src="./data/report-data.js"></script>
   <script>
     const state = {
       payload: null,
@@ -368,32 +369,41 @@
       }
     }
 
+    function applyPayload(payload) {
+      state.payload = payload;
+
+      generatedAtEl.textContent = `資料更新時間：${payload.generated_at}`;
+      rowCountEl.textContent = payload.stats.row_count;
+      titleCountEl.textContent = payload.stats.title_count;
+      peopleCountEl.textContent = payload.stats.people_count;
+
+      renderAllPeople(payload.all_people || []);
+      renderTitleSections(payload.title_sections || []);
+
+      loadingPanel.classList.add("hidden");
+      errorPanel.classList.add("hidden");
+      allListSection.classList.remove("hidden");
+      groupedResults.classList.add("hidden");
+    }
+
     async function loadData() {
       try {
+        if (window.STATIC_REPORT_DATA) {
+          applyPayload(window.STATIC_REPORT_DATA);
+          return;
+        }
+
         const response = await fetch("./data/report-data.json", { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`資料讀取失敗：HTTP ${response.status}`);
         }
 
         const payload = await response.json();
-        state.payload = payload;
-
-        generatedAtEl.textContent = `資料更新時間：${payload.generated_at}`;
-        rowCountEl.textContent = payload.stats.row_count;
-        titleCountEl.textContent = payload.stats.title_count;
-        peopleCountEl.textContent = payload.stats.people_count;
-
-        renderAllPeople(payload.all_people || []);
-        renderTitleSections(payload.title_sections || []);
-
-        loadingPanel.classList.add("hidden");
-        errorPanel.classList.add("hidden");
-        allListSection.classList.remove("hidden");
-        groupedResults.classList.add("hidden");
+        applyPayload(payload);
       } catch (error) {
         loadingPanel.classList.add("hidden");
         errorPanel.classList.remove("hidden");
-        errorPanel.textContent = `${error.message}。請確認已一併部署 data/report-data.json。`;
+        errorPanel.textContent = `${error.message}。請確認已一併部署 data/report-data.js 或 data/report-data.json。`;
       }
     }
 
